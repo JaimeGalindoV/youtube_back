@@ -25,6 +25,15 @@ app.add_middleware(
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
+
+@app.middleware("http")
+async def add_upload_security_headers(request, call_next):
+    response = await call_next(request)
+    if request.url.path == "/uploads" or request.url.path.startswith("/uploads/"):
+        response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
 # Registrar routers
 app.include_router(videos.router)
 

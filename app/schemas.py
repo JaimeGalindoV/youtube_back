@@ -28,3 +28,10 @@ class VideoUpdate(BaseModel):
     description: Optional[str] = None
     channel: Optional[str] = None
     duration: Optional[str] = None
+
+
+class VideoReplace(BaseModel):
+    title: str
+    description: str
+    channel: str
+    duration: str

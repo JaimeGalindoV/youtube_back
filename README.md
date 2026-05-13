@@ -24,3 +24,15 @@ Este proyecto utiliza FastAPI para crear un backend simple que responde a solici
     uvicorn main:app --reload
     ```
 5. Abre tu navegador y navega a `http://localhost:8000` para ver la respuesta del backend. Deberías ver un mensaje de bienvenida.
+
+## Endpoints principales
+
+- `GET /`
+- `GET /health`
+- `GET /videos`
+- `GET /videos/{video_id}`
+- `GET /videos/search?title=texto`
+- `POST /videos`
+- `PATCH /videos/{video_id}`
+- `PUT /videos/{video_id}`
+- `DELETE /videos/{video_id}`

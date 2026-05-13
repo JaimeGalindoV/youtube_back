@@ -1,6 +1,6 @@
 import os
 import uuid
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Request
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Query, Request
 from typing import Optional
 
 from app.database import get_db
@@ -86,18 +86,44 @@ def _to_video_detail(row, request: Request) -> VideoDetail:
     )
 
 
+def _to_video_list_item(row, request: Request) -> VideoListItem:
+    return VideoListItem(
+        id=row["id"],
+        title=row["title"],
+        channel=row["channel"],
+        duration=row["duration"],
+        views=row["views"],
+        thumbnail_url=_build_url(request, "thumbnails", row["thumbnail_filename"]),
+    )
+
+
 @router.get("", response_model=list[VideoListItem])
 def list_videos(request: Request):
     conn = get_db()
     rows = conn.execute("SELECT id, title, channel, duration, views, thumbnail_filename FROM videos ORDER BY created_at DESC").fetchall()
     conn.close()
-    return [
-        VideoListItem(
-            id=r["id"], title=r["title"], channel=r["channel"],
-            duration=r["duration"], views=r["views"],
-            thumbnail_url=_build_url(request, "thumbnails", r["thumbnail_filename"])
-        ) for r in rows
-    ]
+    return [_to_video_list_item(r, request) for r in rows]
+
+
+@router.get("/search", response_model=list[VideoListItem])
+def search_videos(request: Request, title: str = Query(..., min_length=1)):
+    clean_title = title.strip()
+    if not clean_title:
+        raise HTTPException(status_code=400, detail="El título de búsqueda no puede estar vacío")
+
+    conn = get_db()
+    rows = conn.execute(
+        """
+        SELECT id, title, channel, duration, views, thumbnail_filename
+        FROM videos
+        WHERE LOWER(title) LIKE ?
+        ORDER BY created_at DESC
+        """,
+        (f"%{clean_title.lower()}%",),
+    ).fetchall()
+    conn.close()
+
+    return [_to_video_list_item(r, request) for r in rows]
 
 
 @router.get("/{video_id}", response_model=VideoDetail)

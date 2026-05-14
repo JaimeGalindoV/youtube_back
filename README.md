@@ -11,12 +11,28 @@ Este proyecto utiliza FastAPI para crear un backend simple que responde a solici
     ```bash
     pip install -r requirements.txt
     ```
-3. Crea un archivo `.env` en la raíz del proyecto y agrega la URL de tu frontend (si es necesario):
+3. Crea un archivo `.env` en la raíz del proyecto y agrega las variables de entorno:
     ```env
     FRONTEND_URL=http://localhost:5173
+    UPLOAD_DIR=uploads
+    DB_PATH=videos.db
+    MAX_VIDEO_SIZE_MB=200
+    MAX_THUMBNAIL_SIZE_MB=5
     ```
 4. Inicia el servidor de desarrollo utilizando Uvicorn:
     ```bash
     uvicorn main:app --reload
     ```
 5. Abre tu navegador y navega a `http://localhost:8000` para ver la respuesta del backend. Deberías ver un mensaje de bienvenida.
+
+## Endpoints principales
+
+- `GET /`
+- `GET /health`
+- `GET /videos`
+- `GET /videos/{video_id}`
+- `GET /videos/search?title=texto`
+- `POST /videos`
+- `PATCH /videos/{video_id}`
+- `PUT /videos/{video_id}`
+- `DELETE /videos/{video_id}`

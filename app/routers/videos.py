@@ -11,6 +11,7 @@ router = APIRouter(prefix="/videos", tags=["videos"])
 
 S3_BUCKET = os.getenv('S3_BUCKET_NAME', 'ourtube-videos-413368290265')
 s3_client = boto3.client('s3', region_name=os.getenv('AWS_REGION', 'us-east-1'))
+PRESIGNED_URL_EXPIRES = int(os.getenv('S3_PRESIGNED_URL_EXPIRES', '3600'))
 
 def _save_file(file: UploadFile, subfolder: str) -> str:
     ext = os.path.splitext(file.filename)[1]
@@ -23,7 +24,11 @@ def _save_file(file: UploadFile, subfolder: str) -> str:
 def _build_url(subfolder: str, filename: Optional[str]) -> Optional[str]:
     if not filename:
         return None
-    return f"https://{S3_BUCKET}.s3.{os.getenv('AWS_REGION', 'us-east-1')}.amazonaws.com/{subfolder}/{filename}"
+    return s3_client.generate_presigned_url(
+        ClientMethod='get_object',
+        Params={'Bucket': S3_BUCKET, 'Key': f"{subfolder}/{filename}"},
+        ExpiresIn=PRESIGNED_URL_EXPIRES,
+    )
 
 @router.get("", response_model=list[VideoListItem])
 def list_videos():

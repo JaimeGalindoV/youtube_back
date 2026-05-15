@@ -22,6 +22,7 @@ Este proyecto utiliza FastAPI para crear un backend simple que responde a solici
     DB_PASSWORD=postgres
     AWS_REGION=us-east-1
     S3_BUCKET_NAME=ourtube-videos
+    S3_PRESIGNED_URL_EXPIRES=3600
     ```
 4. Inicia el servidor de desarrollo utilizando Uvicorn:
     ```bash

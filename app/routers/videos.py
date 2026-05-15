@@ -66,7 +66,7 @@ def _save_file(file: UploadFile, subfolder: str, extension: str) -> str:
     return filename
 
 
-def _build_url(request: Request, subfolder: str, filename: str | None) -> str | None:
+def _build_url(request: Request, subfolder: str, filename: Optional[str]) -> Optional[str]:
     if not filename:
         return None
     return str(request.url_for("uploads", path=f"{subfolder}/{filename}"))

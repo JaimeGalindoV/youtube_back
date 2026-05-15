@@ -19,7 +19,8 @@ def _save_file(file: UploadFile, subfolder: str) -> str:
     s3_client.upload_fileobj(file.file, S3_BUCKET, s3_key)
     return filename
 
-def _build_url(subfolder: str, filename: str | None) -> str | None:
+
+def _build_url(request: Request, subfolder: str, filename: Optional[str]) -> Optional[str]:
     if not filename:
         return None
     return f"https://{S3_BUCKET}.s3.{os.getenv('AWS_REGION', 'us-east-1')}.amazonaws.com/{subfolder}/{filename}"

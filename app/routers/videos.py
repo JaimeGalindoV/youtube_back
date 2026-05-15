@@ -107,6 +107,7 @@ def update_video(
     channel: Optional[str] = Form(None),
     duration: Optional[str] = Form(None),
     thumbnail: Optional[UploadFile] = File(None),
+    increment_views: bool = Form(False),
 ):
     conn = get_db()
     cur = conn.cursor()
@@ -125,6 +126,9 @@ def update_video(
     if thumbnail:
         thumbnail_filename = _save_file(thumbnail, "imagenes")
         updates['thumbnail_filename'] = thumbnail_filename
+    if increment_views:
+        cur.execute("UPDATE videos SET views = views + 1 WHERE id = %s", (video_id,))
+        conn.commit()
 
     if updates:
         set_clause = ", ".join(f"{k} = %s" for k in updates)

@@ -178,15 +178,34 @@ def create_video(
     return _to_video_detail(row, request)
 
 
-@router.patch("/{video_id}", response_model=VideoDetail)
-def update_video(video_id: int, data: VideoUpdate, request: Request):
+@router.put("/{video_id}", response_model=VideoDetail)
+def update_video(
+    video_id: int,
+    request: Request,
+    title: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    channel: Optional[str] = Form(None),
+    duration: Optional[str] = Form(None),
+    thumbnail: Optional[UploadFile] = File(None),
+):
     conn = get_db()
     row = conn.execute("SELECT * FROM videos WHERE id = ?", (video_id,)).fetchone()
     if not row:
         conn.close()
         raise HTTPException(status_code=404, detail="Video no encontrado")
 
-    updates = {k: v for k, v in data.model_dump().items() if v is not None}
+    # Diccionario manual con los campos modificados
+    updates = {}
+    if title is not None: updates['title'] = title
+    if description is not None: updates['description'] = description
+    if channel is not None: updates['channel'] = channel
+    if duration is not None: updates['duration'] = duration
+
+    # Si llegó un thumbnail nuevo, lo guardamos
+    if thumbnail:
+        thumbnail_filename = _save_file(thumbnail, "thumbnails")
+        updates['thumbnail_filename'] = thumbnail_filename
+
     if updates:
         set_clause = ", ".join(f"{k} = ?" for k in updates)
         conn.execute(f"UPDATE videos SET {set_clause} WHERE id = ?", (*updates.values(), video_id))

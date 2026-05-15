@@ -1,6 +1,11 @@
 import os
+import re
+import shutil
+import subprocess
+import tempfile
 import uuid
 import boto3
+import imageio_ffmpeg
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from typing import Optional
 
@@ -19,6 +24,49 @@ def _save_file(file: UploadFile, subfolder: str) -> str:
     s3_key = f"{subfolder}/{filename}"
     s3_client.upload_fileobj(file.file, S3_BUCKET, s3_key)
     return filename
+
+
+def _format_duration(total_seconds: int) -> str:
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
+    if hours > 0:
+        return f"{hours}:{minutes:02d}:{seconds:02d}"
+    return f"{minutes}:{seconds:02d}"
+
+
+def _extract_duration(file: UploadFile) -> str:
+    ext = os.path.splitext(file.filename or "")[1] or ".mp4"
+    file.file.seek(0)
+    temp_path = None
+
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as temp_file:
+            temp_path = temp_file.name
+            shutil.copyfileobj(file.file, temp_file)
+
+        ffmpeg_executable = imageio_ffmpeg.get_ffmpeg_exe()
+        probe = subprocess.run(
+            [ffmpeg_executable, "-i", temp_path, "-f", "null", "-"],
+            capture_output=True,
+            text=True,
+        )
+        output = (probe.stderr or "") + (probe.stdout or "")
+        match = re.search(r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", output)
+        if not match:
+            raise ValueError("Duración no encontrada")
+
+        hours = int(match.group(1))
+        minutes = int(match.group(2))
+        seconds = float(match.group(3))
+        total_seconds = int(hours * 3600 + minutes * 60 + round(seconds))
+        return _format_duration(total_seconds)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"No se pudo calcular la duración del video: {exc}")
+    finally:
+        file.file.seek(0)
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
 
 
 def _build_url(subfolder: str, filename: Optional[str]) -> Optional[str]:
@@ -69,10 +117,10 @@ def create_video(
     title: str = Form(...),
     description: str = Form(""),
     channel: str = Form("Usuario"),
-    duration: str = Form("0:00"),
     video: UploadFile = File(...),
     thumbnail: Optional[UploadFile] = File(None),
 ):
+    duration = _extract_duration(video)
     video_filename = _save_file(video, "videos")
     thumbnail_filename = _save_file(thumbnail, "imagenes") if thumbnail else None
 

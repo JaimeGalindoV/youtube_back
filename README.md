@@ -30,6 +30,8 @@ Este proyecto utiliza FastAPI para crear un backend simple que responde a solici
     ```
 5. Abre tu navegador y navega a `http://localhost:8000/api` para ver la respuesta del backend. Deberías ver un mensaje de bienvenida.
 
+Al crear videos (`POST /api/videos`), la duración se calcula automáticamente a partir del archivo subido.
+
 ## Endpoints principales
 
 - `GET /api`

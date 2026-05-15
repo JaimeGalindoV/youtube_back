@@ -1,7 +1,7 @@
 import os
 import uuid
 import boto3
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Request
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from typing import Optional
 
 from app.database import get_db
@@ -20,7 +20,7 @@ def _save_file(file: UploadFile, subfolder: str) -> str:
     return filename
 
 
-def _build_url(request: Request, subfolder: str, filename: Optional[str]) -> Optional[str]:
+def _build_url(subfolder: str, filename: Optional[str]) -> Optional[str]:
     if not filename:
         return None
     return f"https://{S3_BUCKET}.s3.{os.getenv('AWS_REGION', 'us-east-1')}.amazonaws.com/{subfolder}/{filename}"

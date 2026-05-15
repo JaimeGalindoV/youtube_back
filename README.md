@@ -15,9 +15,13 @@ Este proyecto utiliza FastAPI para crear un backend simple que responde a solici
     ```env
     FRONTEND_URL=http://localhost:5173
     UPLOAD_DIR=uploads
-    DB_PATH=videos.db
-    MAX_VIDEO_SIZE_MB=200
-    MAX_THUMBNAIL_SIZE_MB=5
+    DB_HOST=localhost
+    DB_PORT=5432
+    DB_NAME=youtubedb
+    DB_USER=postgres
+    DB_PASSWORD=postgres
+    AWS_REGION=us-east-1
+    S3_BUCKET_NAME=ourtube-videos
     ```
 4. Inicia el servidor de desarrollo utilizando Uvicorn:
     ```bash
